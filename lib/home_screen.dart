@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:info_sphere/collab_screen.dart';
 import 'notice_board_screen.dart';
 import 'branch_notice_board_screen.dart';
 import 'exam_timetable_screen.dart';
@@ -195,6 +196,19 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const BranchTimetableScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+
+            _buildCard(
+              title: 'Collab',
+              subtitle: 'Share and collaborate with others.',
+              icon: Icons.chat,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CollabScreen()),
                 );
               },
             ),
