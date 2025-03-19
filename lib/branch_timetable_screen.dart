@@ -1,11 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:path_provider/path_provider.dart';
 
 class BranchTimetableScreen extends StatefulWidget {
   const BranchTimetableScreen({super.key});
@@ -15,11 +12,8 @@ class BranchTimetableScreen extends StatefulWidget {
 }
 
 class _BranchTimetableScreenState extends State<BranchTimetableScreen> {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final User? _user = FirebaseAuth.instance.currentUser;
-  List<Map<String, dynamic>> _timetables = [];
-  String? _selectedPdfUrl;
+  List<File> _timetables = [];
+  String? _selectedPdfPath;
 
   @override
   void initState() {
@@ -28,9 +22,10 @@ class _BranchTimetableScreenState extends State<BranchTimetableScreen> {
   }
 
   Future<void> _loadTimetables() async {
-    final QuerySnapshot snapshot = await _firestore.collection('branch_timetables').get();
+    final Directory appDir = await getApplicationDocumentsDirectory();
+    final List<FileSystemEntity> files = appDir.listSync();
     setState(() {
-      _timetables = snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+      _timetables = files.whereType<File>().where((file) => file.path.endsWith('.pdf')).toList();
     });
   }
 
@@ -44,23 +39,19 @@ class _BranchTimetableScreenState extends State<BranchTimetableScreen> {
       final String fileName = result.files.single.name;
       final String filePath = result.files.single.path!;
 
-      // Upload to Firebase Storage
-      final Reference storageRef = _storage.ref().child('branch_timetables/$fileName');
-      await storageRef.putFile(File(filePath));
+      // Copy the file to the app's local storage
+      final Directory appDir = await getApplicationDocumentsDirectory();
+      final String localFilePath = '${appDir.path}/$fileName';
+      await File(filePath).copy(localFilePath);
 
-      // Get download URL
-      final String downloadUrl = await storageRef.getDownloadURL();
-
-      // Save metadata to Firestore
-      await _firestore.collection('branch_timetables').add({
-        'fileName': fileName,
-        'downloadUrl': downloadUrl,
-        'uploadedBy': _user?.uid,
-        'timestamp': DateTime.now(),
-      });
-
-      _loadTimetables(); // Refresh the list
+      // Refresh the list
+      _loadTimetables();
     }
+  }
+
+  Future<void> _deleteTimetable(File file) async {
+    await file.delete();
+    _loadTimetables(); // Refresh the list
   }
 
   @override
@@ -79,11 +70,11 @@ class _BranchTimetableScreenState extends State<BranchTimetableScreen> {
       body: Column(
         children: [
           // PDF Viewer
-          if (_selectedPdfUrl != null)
+          if (_selectedPdfPath != null)
             Expanded(
               flex: 2,
               child: PDFView(
-                filePath: _selectedPdfUrl!,
+                filePath: _selectedPdfPath!,
                 enableSwipe: true,
                 swipeHorizontal: true,
                 autoSpacing: true,
@@ -107,46 +98,44 @@ class _BranchTimetableScreenState extends State<BranchTimetableScreen> {
             child: ListView.builder(
               itemCount: _timetables.length,
               itemBuilder: (context, index) {
-                final timetable = _timetables[index];
+                final File timetable = _timetables[index];
                 return ListTile(
                   title: Text(
-                    timetable['fileName'],
+                    timetable.path.split('/').last,
                     style: const TextStyle(color: Colors.white),
                   ),
-                  onTap: () {
-                    setState(() {
-                      _selectedPdfUrl = timetable['downloadUrl'];
-                    });
-                  },
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          _deleteTimetable(timetable);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.open_in_new, color: Colors.blue),
+                        onPressed: () {
+                          setState(() {
+                            _selectedPdfPath = timetable.path;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
           ),
         ],
       ),
-      floatingActionButton: FutureBuilder<DocumentSnapshot>(
-        future: _firestore.collection('users').doc(_user?.uid).get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SizedBox.shrink();
-          }
-          if (snapshot.hasData && snapshot.data!.exists) {
-            final userData = snapshot.data!.data() as Map<String, dynamic>;
-            final String role = userData['role'];
-
-            if (role == 'Teacher') {
-              return FloatingActionButton(
-                onPressed: _uploadTimetable,
-                backgroundColor: Colors.white,
-                child: const Icon(
-                  Icons.add,
-                  color: Colors.black,
-                ),
-              );
-            }
-          }
-          return const SizedBox.shrink();
-        },
+      floatingActionButton: FloatingActionButton(
+        onPressed: _uploadTimetable,
+        backgroundColor: Colors.white,
+        child: const Icon(
+          Icons.add,
+          color: Colors.black,
+        ),
       ),
     );
   }

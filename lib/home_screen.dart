@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:info_sphere/art_club_screen.dart';
 import 'package:info_sphere/collab_screen.dart';
+import 'package:info_sphere/cultural_club_screen.dart';
+import 'package:info_sphere/tech_club_screen.dart';
 import 'notice_board_screen.dart';
 import 'branch_notice_board_screen.dart';
 import 'exam_timetable_screen.dart';
@@ -104,16 +107,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const Divider(color: Colors.grey),
-                ListTile(
-                  leading: const Icon(Icons.settings, color: Colors.white),
-                  title: const Text(
-                    'Settings',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onTap: () {
-                    // Navigate to settings screen
-                  },
-                ),
+
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.white),
                   title: const Text(
@@ -130,89 +124,133 @@ class HomeScreen extends StatelessWidget {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Welcome Back,',
-              style: TextStyle(
-                fontSize: 24,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Welcome Back,',
+                style: TextStyle(
+                  fontSize: 24,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Here’s what’s happening today.',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
+              const SizedBox(height: 10),
+              const Text(
+                'Here’s what’s happening today.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            _buildCard(
-              title: 'General Notice Board',
-              subtitle: 'View and post general notices.',
-              icon: Icons.notifications,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const NoticeBoardScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            _buildCard(
-              title: 'Branch Notice Board',
-              subtitle: 'View and post branch-specific notices.',
-              icon: Icons.notifications,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const BranchNoticeBoardScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            _buildCard(
-              title: 'Exam Timetable',
-              subtitle: 'View and upload exam timetables.',
-              icon: Icons.calendar_today,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ExamTimetableScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            _buildCard(
-              title: 'Branch Timetable',
-              subtitle: 'View and upload branch-specific timetables.',
-              icon: Icons.calendar_today,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const BranchTimetableScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
+              const SizedBox(height: 20),
+              _buildCard(
+                title: 'General Notice Board',
+                subtitle: 'View and post general notices.',
+                icon: Icons.notifications,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NoticeBoardScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildCard(
+                title: 'Branch Notice Board',
+                subtitle: 'View and post branch-specific notices.',
+                icon: Icons.notification_add,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const BranchNoticeBoardScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildCard(
+                title: 'Exam Timetable',
+                subtitle: 'View and upload exam timetables.',
+                icon: Icons.calendar_today,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ExamTimetableScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildCard(
+                title: 'Branch Timetable',
+                subtitle: 'View and upload branch-specific timetables.',
+                icon: Icons.calendar_today,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const BranchTimetableScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+        
+              _buildCard(
+                title: 'Collab',
+                subtitle: 'Share and collaborate with others.',
+                icon: Icons.people,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CollabScreen()),
+                  );
+                },
+              ),
 
-            _buildCard(
-              title: 'Collab',
-              subtitle: 'Share and collaborate with others.',
-              icon: Icons.chat,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CollabScreen()),
-                );
-              },
-            ),
-          ],
+              const SizedBox(height: 10),
+
+              _buildCard(
+                title: 'Technical Club',
+                subtitle: 'Share and collaborate with Technical Club.',
+                icon: Icons.code,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const TechClubScreen()),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 10),
+
+              _buildCard(
+                title: 'Cultural Club',
+                subtitle: 'Share and collaborate with Cultural Club.',
+                icon: Icons.flag,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CulturalClubScreen()),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 10),
+
+              _buildCard(
+                title: 'Art  Club',
+                subtitle: 'Share and collaborate with Art Club.',
+                icon: Icons.color_lens_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ArtClubScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
