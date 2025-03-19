@@ -1,33 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:info_sphere/home_screen.dart';
 import 'package:info_sphere/login_screen.dart';
 import 'package:info_sphere/services/auth_service.dart';
 import 'package:provider/provider.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  String? selectedRole;
+  String? selectedBranch;
+  bool isLoading = false; // Track loading state
+
+  // List of branches
+  final List<String> branches = [
+    'CSE Core',
+    'AIML',
+    'DS',
+    'ENTC',
+    'ME',
+    'ENCS',
+  ];
+
+  // Form key for validation
+  final _formKey = GlobalKey<FormState>();
+
+  @override
   Widget build(BuildContext context) {
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
-    final TextEditingController nameController = TextEditingController();
     final authService = Provider.of<AuthService>(context);
-
-    String? selectedRole;
-    String? selectedBranch;
-
-    // List of branches
-    final List<String> branches = [
-      'CSE Core',
-      'AIML',
-      'DS',
-      'ENTC',
-      'ME',
-      'ENCS',
-    ];
-
-    // Form key for validation
-    final _formKey = GlobalKey<FormState>();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -209,7 +216,9 @@ class RegisterScreen extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () async {
+                    onPressed: isLoading
+                        ? null
+                        : () async {
                       if (_formKey.currentState!.validate()) {
                         if (selectedBranch == null || selectedRole == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -217,6 +226,10 @@ class RegisterScreen extends StatelessWidget {
                           );
                           return;
                         }
+
+                        setState(() {
+                          isLoading = true; // Start loading
+                        });
 
                         try {
                           await authService.register(
@@ -226,10 +239,18 @@ class RegisterScreen extends StatelessWidget {
                             selectedBranch!,
                             selectedRole!,
                           );
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const HomeScreen()),
+                          );
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(e.toString())),
                           );
+                        } finally {
+                          setState(() {
+                            isLoading = false; // Stop loading
+                          });
                         }
                       }
                     },
@@ -240,7 +261,9 @@ class RegisterScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text(
+                    child: isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
                       'Register',
                       style: TextStyle(color: Colors.white),
                     ),

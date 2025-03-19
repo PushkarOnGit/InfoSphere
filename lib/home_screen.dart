@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'notice_board_screen.dart';
-import 'branch_notice_board_screen.dart'; // Import the new screen
+import 'branch_notice_board_screen.dart';
+import 'exam_timetable_screen.dart';
+import 'branch_timetable_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -11,23 +12,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      // Handle the case where the user is not logged in
-      return Scaffold(
-        body: Center(
-          child: Text(
-            'User not logged in',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      );
-    }
-    final String userId = user.uid;
-
-    // Subscribe to the 'all' topic
-    FirebaseMessaging.instance.subscribeToTopic('all').catchError((error) {
-      print('Error subscribing to topic: $error');
-    });
+    final String userId = user!.uid;
 
     return Scaffold(
       backgroundColor: const Color(0xFF1A1B26),
@@ -68,12 +53,11 @@ class HomeScreen extends StatelessWidget {
             }
 
             final userData = snapshot.data!.data() as Map<String, dynamic>;
-            final String name = userData['name'] ?? 'Unknown';
-            final String email = userData['email'] ?? 'No email';
-            final String role = userData['role'] ?? 'No role';
+            final String name = userData['name'];
+            final String email = userData['email'];
+            final String role = userData['role'];
 
-            return ListView(
-              padding: EdgeInsets.zero,
+            return Column(
               children: [
                 // User Profile Section
                 Container(
@@ -187,6 +171,30 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const BranchNoticeBoardScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            _buildCard(
+              title: 'Exam Timetable',
+              subtitle: 'View and upload exam timetables.',
+              icon: Icons.calendar_today,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ExamTimetableScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            _buildCard(
+              title: 'Branch Timetable',
+              subtitle: 'View and upload branch-specific timetables.',
+              icon: Icons.calendar_today,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const BranchTimetableScreen()),
                 );
               },
             ),
